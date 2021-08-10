@@ -1,0 +1,22 @@
+sudo: required
+services:
+ - docker
+
+before_install:
+  - docker build -t chrisgrigg/react-test -f ./client/Dockerfile.dev
+
+script:
+  - docker run chrisgrigg/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t chrisgrigg/multi-client ./client
+  - docker build -t chrisgrigg/multi-nginx ./nginx
+  - docker build -t chrisgrigg/multi-server ./server
+  - docker build -t chrisgrigg/multi-worker ./worker
+
+- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+- docker push chrisgrigg/multi-client
+- docker push chrisgrigg/multi-nginx
+- docker push chrisgrigg/multi-server
+- docker push chrisgrigg/multi-worker
